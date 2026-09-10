@@ -3,7 +3,6 @@
  */
 package com.moonwalk.restaurant.strategy;
 
-
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
@@ -14,63 +13,38 @@ import com.moonwalk.restaurant.entity.Order;
 import com.moonwalk.restaurant.entity.OrderItem;
 
 @Component
-public class ResourceAwareEstimationStrategy
-        implements TimeEstimationStrategy {
-	
-	 private static final String ESTIMATION_ALGORITHM =
-	            "RESOURCE_AWARE";
+public class ResourceAwareEstimationStrategy implements TimeEstimationStrategy {
 
-    @Override
-    public EstimationResult estimate(
-            Order order,
-            KitchenState kitchenState) {
+	private static final String ESTIMATION_ALGORITHM = "RESOURCE_AWARE";
 
-        long maximumCompletionTime = 0;
+	@Override
+	public EstimationResult estimate(Order order, KitchenState kitchenState) {
 
-        for (OrderItem orderItem : order.getOrderItems()) {
+		long maximumCompletionTime = 0;
 
-            int preparationTime =
-                    orderItem.getMenuItem()
-                            .getPreparationTimeMinutes();
+		for (OrderItem orderItem : order.getOrderItems()) {
 
-            String resourceType =
-                    orderItem.getMenuItem()
-                            .getRequiredResourceType();
+			int preparationTime = orderItem.getMenuItem().getPreparationTimeMinutes();
 
-            KitchenResourceAvailability resource =
-                    kitchenState.getResource(resourceType);
+			String resourceType = orderItem.getMenuItem().getRequiredResourceType();
 
-            if (resource == null) {
-                throw new IllegalStateException(
-                        "Required kitchen resource not available: "
-                                + resourceType
-                );
-            }
+			KitchenResourceAvailability resource = kitchenState.getResource(resourceType);
 
-            int waitingTime =
-                    resource.getWaitingTimeMinutes();
+			if (resource == null) {
+				throw new IllegalStateException("Required kitchen resource not available: " + resourceType);
+			}
 
-            long itemCompletionTime =
-                    waitingTime
-                            + ((long) preparationTime
-                            * orderItem.getQuantity());
+			int waitingTime = resource.getWaitingTimeMinutes();
 
-            maximumCompletionTime =
-                    Math.max(
-                            maximumCompletionTime,
-                            itemCompletionTime
-                    );
-        }
+			long itemCompletionTime = waitingTime + ((long) preparationTime * orderItem.getQuantity());
 
-        LocalDateTime estimatedReadyAt =
-                LocalDateTime.now()
-                        .plusMinutes(maximumCompletionTime);
+			maximumCompletionTime = Math.max(maximumCompletionTime, itemCompletionTime);
+		}
 
-        return new EstimationResult(
-                maximumCompletionTime,
-                estimatedReadyAt,
-                ESTIMATION_ALGORITHM
+		LocalDateTime estimatedReadyAt = LocalDateTime.now().plusMinutes(maximumCompletionTime);
+
+		return new EstimationResult(maximumCompletionTime, estimatedReadyAt, ESTIMATION_ALGORITHM
 //                "RESOURCE_AWARE"
-        );
-    }
+		);
+	}
 }

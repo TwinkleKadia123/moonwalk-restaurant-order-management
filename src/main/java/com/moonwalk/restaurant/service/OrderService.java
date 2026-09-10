@@ -5,6 +5,7 @@ package com.moonwalk.restaurant.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -323,9 +324,17 @@ public class OrderService {
                                 orderId
                         );
 
-        return executions.stream()
+        /*return executions.stream()
                 .map(this::toEstimationExecutionResponse)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
+        
+        List<EstimationExecutionResponse> responses = new ArrayList<>();
+
+        for (EstimationExecution execution : executions) {
+            responses.add(toEstimationExecutionResponse(execution));
+        }
+        
+        return responses;
     }
     
     private EstimationExecutionResponse
